@@ -167,21 +167,21 @@ import { FullCalendar } from 'vue-full-calendar';
 export default {
   data () {
     return {
-			config: {
-  			defaultView: 'month'
-			},
-			calander: false,
-      report: false,
-      dialog: false,
-      newTask: "",
-      tasks: [],
-			doneNum: 0,
-      doneTasks: [],
-      taskArc: [],
-      reportTimes: [],
-			taskLabels: [],
-			taskTimes: [],
-      events: []
+		config: {
+		defaultView: 'month'
+		},
+		calander: false,
+		  report: false,
+		  dialog: false,
+		  newTask: "",
+		  tasks: [],
+				doneNum: 0,
+		  doneTasks: [],
+		  taskArc: [],
+		  reportTimes: [],
+				taskLabels: [],
+				taskTimes: [],
+		  events: []
     }
   },
   components: {

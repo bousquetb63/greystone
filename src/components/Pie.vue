@@ -15,7 +15,6 @@ export default {
       labels: this.labels,
       datasets: [
         {
-          label: 'GitHub Commits',
           backgroundColor: randomColors,
           data: this.data,
         }

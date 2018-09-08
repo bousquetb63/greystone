@@ -3,20 +3,21 @@
     <v-dialog
       v-model="report"
       width="500"
-    >
+      >
       <v-card>
         <v-card-title
           class="headline"
           primary-title
         >
-          Lets check on your progress!
+          Lets check on your progress
         </v-card-title>
 
         <v-divider></v-divider>
 
-	<v-card-text>
-		<Piechart v-if="report" :height="100" :width="100" :data="taskTimes" :labels="taskLabels" />
-	</v-card-text>
+				<v-card-text>
+					<p style="text-align: center">Time Spent (seconds)</p>
+					<Piechart v-if="report" :height="100" :width="100" :data="taskTimes" :labels="taskLabels" />
+				</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
@@ -29,11 +30,38 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+		<v-dialog
+			v-model="calander"
+			width="1500"
+			>
+			<v-card>
+				<v-card-title
+					class="headline"
+					primary-title
+				>
+					Lets look at your schedule
+				</v-card-title>
+        <v-divider></v-divider>
 
+				<v-card-text>
+					<full-calendar :config="config" :events="events"></full-calendar>
+				</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            flat
+            @click="calander = false"
+          >
+            Got it!
+          </v-btn>
+        </v-card-actions>
+			</v-card>
+		</v-dialog>
     <v-dialog
       v-model="dialog"
       width="500"
-    >
+    	>
       <v-card>
         <v-card-title
           class="headline"
@@ -69,7 +97,8 @@
           value="Finish that essay that I procrasinated on..."
         ></v-textarea>
         <v-btn color="success" @click="addTask()">Add</v-btn>
-        <v-btn color="success" @click="showReport()">7 day report</v-btn>
+        <v-btn color="success" v-if="doneNum > 0" @click="showReport()">Time Distribution</v-btn>
+        <v-btn color="success" v-if="taskArc.length > 0" @click="openCalander()">Calender</v-btn>
       </v-card-text>
     </v-card>
     <v-card style="margin-top:10px">
@@ -77,7 +106,7 @@
         Tasks to do!
       </v-card-title>
       <div v-if="tasks.length > 0">
-      	      <v-divider></v-divider>
+	      <v-divider></v-divider>
 	      <v-card-text v-if="tasks.length > 0">
 		<div 
 		v-for="task in tasks"
@@ -133,25 +162,54 @@
 import {mapGetters} from 'vuex';
 import Piechart from '../components/Pie.vue';
 import timediff from 'timediff';
+import { FullCalendar } from 'vue-full-calendar';
 
 export default {
   data () {
     return {
+			config: {
+  			defaultView: 'month'
+			},
+			calander: false,
       report: false,
       dialog: false,
       newTask: "",
       tasks: [],
+			doneNum: 0,
       doneTasks: [],
       taskArc: [],
       reportTimes: [],
 			taskLabels: [],
 			taskTimes: [],
+      events: []
     }
   },
   components: {
-    Piechart
+    Piechart,
+		FullCalendar
   },
   methods: {
+		openCalander(){
+			this.taskArc.map(k => {
+			  this.events = [];
+				if(k.finished == false){
+	
+					this.events.push({
+						title: k.title,
+						start: k.createdAt,
+						color: 'red'
+					})
+				} else {
+					this.events.push({
+						title: k.title,
+						start: k.createdAt,
+						end: k.finishedAt,
+						color: 'green'
+					})
+				}
+				this.calander = true;
+			})
+		},
     dateDifference(d1, d2) {
 			return timediff(d1, d2, 'S');
     },
@@ -188,22 +246,25 @@ export default {
       })
       this.newTask = "";
      } else {
-	this.dialog = true;
+			this.dialog = true;
      }
     },
     finishTask(task) {
       var today = new Date();
       console.log(task)
-      var indexNum = this.tasks.findIndex(k => k.title == task.title)
-      var arcIndex = this.taskArc.findIndex(k => k.title == task.title)
+      var indexNum = this.tasks.findIndex(k => k.title === task.title)
+      var arcIndex = this.taskArc.findIndex(k => k.title === task.title)
       this.taskArc[arcIndex].finished = true;
       this.taskArc[arcIndex].finishedAt = today;
-      this.tasks.splice(indexNum, indexNum+1)
+      this.tasks.splice(indexNum, 1)
+			console.log('[][][][]')
       console.log(this.tasks)
-      this.doneTasks.push({
+			console.log('[][][][]')      
+			this.doneTasks.push({
         title: task.title,
         finishedAt: today,
       })
+			this.doneNum++;
       console.log(this.taskArc[arcIndex]);
     },
     deleteTask(task) {
@@ -214,18 +275,30 @@ export default {
       var now = new Date(d);
       var months = ["January", "Febuary", "March", "April", "May", "June", "July", "August", "September", "October", "Novemeber", "December"]
       var day = now.getDate();
+			var tod = "";
+			if(now.getHours() > 12) {
+				var hours = (now.getHours() - 12)
+				tod = "pm";
+			} else {
+				var hours = (now.getHours())
+				tod = "am"
+			}
       if(now.getMinutes() < 10) {
-	var minute = "0" + now.getMinutes();
+				var minute = "0" + now.getMinutes();
       } else {
-	var minute = now.getMinutes();
+				var minute = now.getMinutes();
       }
       if(context == "c") {
-        return "Created on " + months[now.getMonth()] + " " + day + "th at " + now.getHours() + ":" + minute;
+        return "Created on " + months[now.getMonth()] + " " + day + "th at " + hours + ":" + minute + tod;
       } else { 
-        return "Finished on " + months[now.getMonth()] + " " + day + "th at " + now.getHours() + ":" + minute;
+        return "Finished on " + months[now.getMonth()] + " " + day + "th at " + hours + ":" + minute + tod;
       }
     }
   }
 }
 </script>
+
+<style>
+    @import '~fullcalendar/dist/fullcalendar.css';
+</style>
 
